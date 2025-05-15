@@ -19,7 +19,7 @@ import joblib
 # In[9]:
 
 
-#1. 数据对齐与保存 Δmesh 数据（嘴部提取）
+#1. 数据对齐与保存 Δmesh 数据
 def align_audio_mesh(data_verts_path, audio_pkl_path, idx_map_path, template_path, output_path):
     import numpy as np, pickle
     from tqdm import tqdm
