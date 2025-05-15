@@ -1,4 +1,0 @@
-MSE: 0.968504
-MAE: 0.776220
-CosineSimilarity: 0.266617
-Smoothness: 0.003036
