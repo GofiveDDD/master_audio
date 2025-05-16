@@ -18,25 +18,25 @@ from sklearn.metrics import mean_absolute_error
 # In[ ]:
 
 
-# ---------- 模型定义 ----------
+# ---------- Model definition ----------
 class LipsyncTransformer(nn.Module):
     def __init__(self, 
                  audio_dim=464,
                  mouth_dim=31,
-                 n_heads=4, # n_heads要能整除 d_model（ff_dim）
-                 n_layers=2,# 一般选 2–4 层 做 baseline
-                 ff_dim=112, # ff_dim = mouth_dim*2或者4
-                 dropout=0.2, # 过拟合严重可提高到 0.3
-                 max_seq_len=30):  # 支持最大序列长度
+                 n_heads=4, 
+                 n_layers=2,
+                 ff_dim=112, 
+                 dropout=0.2, 
+                 max_seq_len=30):  
         super().__init__()
 
-        # 1. 投影输入特征
+        # 1. Projected input features
         self.input_proj = nn.Linear(audio_dim, ff_dim)  # [B, T, 464] -> [B, T, ff_dim]
 
-        # 2. 可学习的位置编码
+        # 2. Learnable positional encodings
         self.pos_embed = nn.Parameter(torch.randn(1, max_seq_len, ff_dim))  # [1, T, ff_dim]
 
-        # 3. Transformer 编码器
+        # 3. Transformer Encoder
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=ff_dim, 
             nhead=n_heads, 
@@ -46,7 +46,7 @@ class LipsyncTransformer(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
 
-        # 4. 输出层
+        # 4. output layer
         self.output_proj = nn.Linear(ff_dim, mouth_dim)  # [B, T, ff_dim] -> [B, T, 28]
 
     def forward(self, audio):
@@ -55,23 +55,23 @@ class LipsyncTransformer(nn.Module):
         """
         B, T, _ = audio.shape
 
-        # 1. 输入特征投影
+        # 1. Input feature projection
         x = self.input_proj(audio)  # [B, T, ff_dim]
 
-        # 2. 加位置编码（注意裁剪 pos_embed 到当前 T）
+        # 2. Add position encoding (note to crop pos_embed to current T)
         x = x + self.pos_embed[:, :T, :]  # [B, T, ff_dim]
 
-        # 3. Transformer 编码
+        # 3. Transformer Encoding
         x = self.transformer(x)  # [B, T, ff_dim]
 
-        # 4. 映射到输出
+        # 4. map to output
         out = self.output_proj(x)  # [B, T, 28]
 
         return out
 
 
 
-# ---------- 训练函数 ----------
+# ---------- train_model ----------
 def train_model(model, train_loader, val_loader, optimizer,
                 num_epochs=30, device='cuda', patience=10, save_path='best_transformer.pt',
                 initial_lr=1e-4):
@@ -88,12 +88,12 @@ def train_model(model, train_loader, val_loader, optimizer,
             return param_group['lr']
 
     for epoch in range(num_epochs):
-        # -------- 手动线性下降学习率 --------
+        # --------Manually linearly decrease the learning rate--------
         new_lr = initial_lr * (1 - epoch / num_epochs)
         for param_group in optimizer.param_groups:
             param_group['lr'] = max(new_lr, 1e-6)  # 防止变成0
 
-        # -------- 训练 --------
+        # -------- train- --------
         model.train()
         total_train_loss = 0.0
         for audio, expr in train_loader:
@@ -113,7 +113,7 @@ def train_model(model, train_loader, val_loader, optimizer,
         avg_train_loss = total_train_loss / len(train_loader)
         train_losses.append(avg_train_loss)
 
-        # -------- 验证 --------
+        # --------  verify --------
         model.eval()
         total_val_loss = 0.0
         with torch.no_grad():
@@ -128,7 +128,6 @@ def train_model(model, train_loader, val_loader, optimizer,
         avg_val_loss = total_val_loss / len(val_loader)
         val_losses.append(avg_val_loss)
 
-        # -------- 打印信息 --------
 
         print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
 
@@ -151,7 +150,7 @@ def train_model(model, train_loader, val_loader, optimizer,
 
 
 
-# ---------- 绘图 ----------
+# ---------- plot ----------
 def plot_loss_curve(train_losses, val_losses):
     plt.figure(figsize=(4, 2))
     plt.plot(train_losses, label='Train Loss')
@@ -165,7 +164,7 @@ def plot_loss_curve(train_losses, val_losses):
     plt.show()
 
 
-# ---------- 评估函数 ----------
+# ---------- evaluation ----------
 def evaluate_on_testset(model, test_loader, device='cuda', save_dir='output_expr_trans_eval'):
     os.makedirs(save_dir, exist_ok=True)
     model.to(device)
