@@ -16,7 +16,7 @@ import numpy as np
 # In[ ]:
 
 
-# Lipsync Transformer 模型
+# Lipsync Transformer 
 class LipsyncTransformer(nn.Module):
     def __init__(self, 
                  audio_dim=464,
@@ -85,7 +85,7 @@ class TransformerGAN(nn.Module):
         return generated_animation, validity
 
 
-# 训练模型函数
+# train_model
 def train_model(model, train_loader, val_loader, optimizer,
                 num_epochs=30, device='cuda', patience=10, save_path='best_model_gan.pt',
                 initial_lr=1e-4):
@@ -101,12 +101,12 @@ def train_model(model, train_loader, val_loader, optimizer,
             return param_group['lr']
 
     for epoch in range(num_epochs):
-        # -------- 手动线性下降学习率 --------
+        # -------- Manually linearly decrease the learning rate --------
         new_lr = initial_lr * (1 - epoch / num_epochs)
         for param_group in optimizer.param_groups:
             param_group['lr'] = max(new_lr, 1e-6)  # 防止变成0
 
-        # -------- 训练 --------
+        # -------- train --------
         model.train()
         total_train_loss = 0.0
         for audio, expr in train_loader:
@@ -126,7 +126,7 @@ def train_model(model, train_loader, val_loader, optimizer,
         avg_train_loss = total_train_loss / len(train_loader)
         train_losses.append(avg_train_loss)
 
-        # -------- 验证 --------
+        # -------- eval --------
         model.eval()
         total_val_loss = 0.0
         with torch.no_grad():
@@ -141,12 +141,10 @@ def train_model(model, train_loader, val_loader, optimizer,
         avg_val_loss = total_val_loss / len(val_loader)
         val_losses.append(avg_val_loss)
 
-        # -------- 打印信息 --------
         current_lr = get_lr(optimizer)
         print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f} - LR: {current_lr:.6f}")
 
         # -------- Early Stopping --------
-        # 检查验证损失并更新模型
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             patience_counter = 0
@@ -163,7 +161,7 @@ def train_model(model, train_loader, val_loader, optimizer,
 
     return train_losses, val_losses
 
-# ---------- 绘图 ----------
+# ---------- plot----------
 def plot_loss_curve(train_losses, val_losses):
     plt.figure(figsize=(4, 2))
     plt.plot(train_losses, label='Train Loss')
@@ -177,7 +175,7 @@ def plot_loss_curve(train_losses, val_losses):
     plt.show()
 
 
-# 评估函数
+# evaluation
 def evaluate_on_testset(model, test_loader, device='cuda', save_dir='output_expr_gan_eval'):
     os.makedirs(save_dir, exist_ok=True)
     model.to(device)
