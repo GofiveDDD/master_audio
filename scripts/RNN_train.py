@@ -19,50 +19,50 @@ from sklearn.metrics import mean_absolute_error
 # In[ ]:
 
 
-# ---------- 模型定义 ----------
+# ---------- Model definition ----------
 class LipsyncRNN(nn.Module):
     def __init__(self, 
-                 audio_dim=464,    # 输入音频特征的维度
-                 mouth_dim=31,     # 嘴部特征维度
-                 hidden_dim=128,   # 隐藏层维度
-                 num_layers=2,     # LSTM 层数
-                 dropout=0.2,      # Dropout
-                 max_seq_len=30):  # 最大序列长度
+                 audio_dim=464,    
+                 mouth_dim=31,     
+                 hidden_dim=128,   
+                 num_layers=2,    
+                 dropout=0.2,      
+                 max_seq_len=30):  
         super(LipsyncRNN, self).__init__()
 
-        # 1. 音频特征的线性映射
+        # 1. Linear mapping of audio features
         self.input_proj = nn.Linear(audio_dim, hidden_dim)  # [B, T, 464] -> [B, T, hidden_dim]
 
-        # 2. LSTM 网络
+        # 2. LSTM 
         self.lstm = nn.LSTM(input_size=hidden_dim, 
                             hidden_size=hidden_dim, 
                             num_layers=num_layers, 
                             dropout=dropout, 
                             batch_first=True)
 
-        # 3. 输出层，将 LSTM 的输出映射到嘴部特征维度
+        # 3. Output layer, mapping the LSTM output to the mouth feature dimension
         self.output_proj = nn.Linear(hidden_dim, mouth_dim)  # [B, T, hidden_dim] -> [B, T, mouth_dim]
 
     def forward(self, audio):
         """
-        audio: 输入音频特征，形状为 [B, T, 464]
+        audio:  [B, T, 464]
         """
         B, T, _ = audio.shape
 
-        # 1. 将音频特征通过线性投影映射到隐藏空间
+        # 1. Mapping audio features to latent space through linear projection
         x = self.input_proj(audio)  # [B, T, hidden_dim]
 
-        # 2. 使用 LSTM 处理序列数据
+        # 2. Using LSTM to process sequence data
         lstm_out, _ = self.lstm(x)  # lstm_out: [B, T, hidden_dim]
 
-        # 3. 将 LSTM 输出映射到嘴部特征空间
+        # 3. Mapping LSTM output to mouth feature space
         out = self.output_proj(lstm_out)  # [B, T, mouth_dim]
 
         return out
 
 
 
-# ---------- 训练函数 ----------
+# ---------- train_model----------
 def train_model(model, train_loader, val_loader, optimizer,
                 num_epochs=30, device='cuda', patience=10, save_path='best_model_rnn.pt',
                 initial_lr=1e-4):
@@ -79,12 +79,12 @@ def train_model(model, train_loader, val_loader, optimizer,
             return param_group['lr']
 
     for epoch in range(num_epochs):
-        # -------- 手动线性下降学习率 --------
+        # -------- Manually linearly decrease the learning rate --------
         new_lr = initial_lr * (1 - epoch / num_epochs)
         for param_group in optimizer.param_groups:
             param_group['lr'] = max(new_lr, 1e-6)  # 防止变成0
 
-        # -------- 训练 --------
+        # -------- train--------
         model.train()
         total_train_loss = 0.0
         for audio, expr in train_loader:
@@ -104,7 +104,7 @@ def train_model(model, train_loader, val_loader, optimizer,
         avg_train_loss = total_train_loss / len(train_loader)
         train_losses.append(avg_train_loss)
 
-        # -------- 验证 --------
+        # -------- verify --------
         model.eval()
         total_val_loss = 0.0
         with torch.no_grad():
@@ -140,7 +140,7 @@ def train_model(model, train_loader, val_loader, optimizer,
 
 
 
-# ---------- 绘图 ----------
+# ---------- plot ----------
 def plot_loss_curve(train_losses, val_losses):
     plt.figure(figsize=(4, 2))
     plt.plot(train_losses, label='Train Loss')
@@ -154,7 +154,7 @@ def plot_loss_curve(train_losses, val_losses):
     plt.show()
 
 
-# ---------- 评估函数 ----------
+# ---------- evaluation ----------
 def evaluate_on_testset(model, test_loader, device='cuda', save_dir='output_expr_rnn_eval'):
     os.makedirs(save_dir, exist_ok=True)
     model.to(device)
