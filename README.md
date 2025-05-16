@@ -99,7 +99,7 @@ After training is completed, the script will save the model weight file and trai
 
 Thanks to the [VOCASET](https://voca.is.tue.mpg.de/) dataset. Any third-party balances are the property of their respective authors and must be used under their respective licenses.
 
-## 相关工作
+## Related work
 
 - [StyleHEAT: One-Shot High-Resolution Editable Talking Face Generation via Pre-trained StyleGAN (ECCV 2022)](https://github.com/FeiiYin/StyleHEAT)
 - [SadTalker: Learning Realistic 3D Motion Coefficients for Stylized Audio-Driven Single Image Talking Face Animation (CVPR 2023)](https://github.com/Winfredy/SadTalker)
