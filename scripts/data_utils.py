@@ -19,7 +19,7 @@ import joblib
 # In[9]:
 
 
-#1. 数据对齐与保存 Δmesh 数据（嘴部提取）
+#1. Data alignment and saving Δmesh data (mouth extraction)
 def align_audio_mesh(data_verts_path, audio_pkl_path, idx_map_path, template_path, output_path):
     import numpy as np, pickle
     from tqdm import tqdm
@@ -57,7 +57,7 @@ def align_audio_mesh(data_verts_path, audio_pkl_path, idx_map_path, template_pat
         pickle.dump({'audio': paired_audio, 'dmesh': paired_dmesh, 'name': paired_name}, f)
         
         
- #2. 提取嘴部索引（只需要做一次）
+ #2. Extract the mouth index (only need to be done once)
 
 
 def extract_mouth_indices(template_ply_path, save_path="mouth_indices.npy", visualize=False):
@@ -69,7 +69,7 @@ def extract_mouth_indices(template_ply_path, save_path="mouth_indices.npy", visu
     np.save(save_path, np.array(mouth_idx))
     print(f"✅ Mouth vertices: {len(mouth_idx)}")
     
-#3. 裁剪嘴部、保存裁剪后 Δmesh    
+#3. Crop the mouth and save the cropped Δmesh   
 
 def crop_to_mouth(dmesh_path, mouth_idx_path, output_path):
     import numpy as np, pickle
@@ -82,7 +82,7 @@ def crop_to_mouth(dmesh_path, mouth_idx_path, output_path):
     with open(output_path, 'wb') as f:
         pickle.dump(out, f)
 
-#4. 执行 PCA 并保存主成分和均值
+#4. Perform PCA and save principal components and means
         
 def compute_pca(dmesh_list, save_dir, var_threshold=0.99):
     import numpy as np, os
@@ -98,7 +98,7 @@ def compute_pca(dmesh_list, save_dir, var_threshold=0.99):
     np.save(os.path.join(save_dir, 'pca_components.npy'), pca.components_)
     np.save(os.path.join(save_dir, 'pca_mean.npy'), pca.mean_)
     return pca
-#5. 编码 Δmesh → PCA
+#5. Encoding Δmesh → PCA
 
 def encode_to_pca(dmesh_list, pca):
     code_list = []
@@ -108,7 +108,7 @@ def encode_to_pca(dmesh_list, pca):
         code_list.append(code.astype(np.float32))
     return code_list
 
-#6. 标准化编码并保存 Scaler
+#6. Standardize the encoding and save the Scaler
 
 def standardize_pca_codes(code_list, save_path):
     from sklearn.preprocessing import StandardScaler
@@ -121,7 +121,7 @@ def standardize_pca_codes(code_list, save_path):
     scaled = [scaler.transform(seq) for seq in code_list]
     return scaled
 
-#7. 构建 Dataset 和 DataLoader
+#7. Building Dataset and DataLoader
 
 class SlidingWindowPcaDataset(torch.utils.data.Dataset):
     def __init__(self, audios, codes, window_size=30, stride=5):
