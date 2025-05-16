@@ -18,7 +18,6 @@ from sklearn.metrics import mean_absolute_error
 # In[ ]:
 
 
-# ---------- 模型定义 ----------
 class LipsyncTransformer(nn.Module):
     def __init__(self, audio_dim=464, mouth_dim=31, n_heads=4, n_layers=2,
                  ff_dim=112, dropout=0.2, max_seq_len=30):
@@ -90,7 +89,7 @@ class TransformerVAE(nn.Module):
         return mean + eps * std
 
 
-# ---------- 训练函数 ----------
+# ---------- train_model----------
 def train_model(model, train_loader, val_loader, optimizer, num_epochs=30,
                 device='cuda', patience=20, save_path='best_model_vae.pt',
                 initial_lr=1e-4):
@@ -134,7 +133,7 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs=30,
 
         print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
 
-        # 检查验证损失并更新模型
+        # 
 
         # Check validation loss and update the model
         if avg_val_loss < best_val_loss:
@@ -154,7 +153,7 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs=30,
     return train_losses, val_losses
 
 
-# ---------- 绘图 ----------
+# ---------- plot ----------
 def plot_loss_curve(train_losses, val_losses):
     plt.figure(figsize=(4, 2))
     plt.plot(train_losses, label='Train Loss')
@@ -168,7 +167,7 @@ def plot_loss_curve(train_losses, val_losses):
     plt.show()
 
 
-# ---------- 评估函数 ----------
+# ---------- evaluation ----------
 def evaluate_on_testset(model, test_loader, device='cuda', save_dir='output_expr_vae_eval'):
     os.makedirs(save_dir, exist_ok=True)
     model.to(device)
